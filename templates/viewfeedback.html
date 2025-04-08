@@ -76,6 +76,11 @@
 
 <header>
   <h1>Secure Question Paper System</h1>
+  <a href="{% url 'admindashboard' %}" style="position: absolute; top: 20px; right: 30px; text-decoration: none;">
+    <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      Home
+    </button>
+  </a>
 </header>
 
 <main>
@@ -86,17 +91,17 @@
         <tr>
           <th>ID</th>
           <th>Username</th>
-          <th>Email</th>
-          <th>Role</th>
+          <th>Feedback</th>
+          <th>Feedback Date</th>
         </tr>
       </thead>
       <tbody>
         {% for user in users %}
         <tr>
           <td>{{ user.id }}</td>
-          <td>{{ user.username }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
+          <td>{{ user.LOGINID.Username }}</td>
+          <td>{{ user.Feed }}</td>
+          <td>{{ user.FeedbackDateTime }}</td>
         </tr>
         {% empty %}
         <tr>

@@ -31,16 +31,27 @@ class Feedback(models.Model):
 
 
 class QuestionPaper(models.Model):
-    Question = models.CharField(max_length=100, null=True, blank=True)
-    PublishDateTime=models.DateTimeField(null=True,blank=True)
-
+    Question = models.CharField(max_length=200,null=True,blank=True)
+    blockchain_hash = models.CharField(max_length=256,null=True,blank=True)  # Blockchain hash of the file
+    PublishDateTime = models.DateTimeField(null=True,blank=True)
+    status = models.CharField(max_length=10, default='Active') 
 
 class QuestionPaperCode(models.Model):
     QuestionPaperID=models.ForeignKey(QuestionPaper,on_delete=models.CASCADE,null=True,blank=True)
     ExaminerID=models.ForeignKey(Examiner,on_delete=models.CASCADE,null=True,blank=True)
     Code = models.CharField(max_length=100, null=True, blank=True)
 
+
 class Log(models.Model):
     LOGINID=models.ForeignKey(LoginTable,on_delete=models.CASCADE,null=True,blank=True)
     LogMessage = models.CharField(max_length=100, null=True, blank=True)
     LogDateTime=models.DateTimeField(auto_now_add=True,null=True, blank=True)
+
+
+
+class BlockData(models.Model):
+    index = models.IntegerField()
+    timestamp = models.DateTimeField()
+    data = models.JSONField()  # Will store question, file_data(base64), status
+    previous_hash = models.CharField(max_length=256)
+    current_hash = models.CharField(max_length=256)

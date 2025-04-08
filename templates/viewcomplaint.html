@@ -76,6 +76,11 @@
 
 <header>
   <h1>Secure Question Paper System</h1>
+  <a href="{% url 'admindashboard' %}" style="position: absolute; top: 20px; right: 30px; text-decoration: none;">
+    <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      Home
+    </button>
+  </a>
 </header>
 
 <main>
@@ -85,26 +90,31 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>User Name</th>
-          <th>Email</th>
+          <th>User</th>
           <th>Complaint</th>
           <th>Date</th>
+          <th>Reply</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        {% for complaint in complaints %}
+        {% for complaint in comp %}
         <tr>
           <td>{{ complaint.id }}</td>
-          <td>{{ complaint.user.username }}</td>
-          <td>{{ complaint.user.email }}</td>
-          <td>{{ complaint.message }}</td>
-          <td>{{ complaint.date }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5">No Complaints Found</td>
+          <td>{{ complaint.LOGINID.username }}</td>
+          <td>{{ complaint.Comp }}</td>
+          <td>{{ complaint.ComplaintDateTime }}</td>
+          <td>{{ complaint.Reply }}</td>
+          <td>
+            <a href="{% url 'sendreply' complaint.id %}">
+              <button style="padding:6px 12px; background-color:#28a745; color:white; border:none; border-radius:4px; cursor:pointer;">
+                Reply
+              </button>
+            </a>
+          </td>
         </tr>
         {% endfor %}
+
       </tbody>
     </table>
   </div>

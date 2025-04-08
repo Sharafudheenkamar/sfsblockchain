@@ -94,7 +94,7 @@
 <main>
   <div class="reply-container">
     <h2>Send Reply</h2>
-    <form method="post">
+    <form method="post" action="{% url 'sendreply' compid %}">
       {% csrf_token %}
       <table>
         <tr>
