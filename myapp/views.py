@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views import View
@@ -37,7 +38,7 @@ class loginview(View):
             if login_obj.Type == "admin":
                 return HttpResponse('''<script>alert("Welcome to Admin page");window.location="/admindashboard"</script>''')
             elif login_obj.Type == "examiner":
-                return HttpResponse('''<script>alert("Welcome to Park Assistant page");window.location="/examinerdashboard"</script>''')
+                return HttpResponse('''<script>alert("Welcome to Examiner page");window.location="/examinerdashboard"</script>''')
 
         except LoginTable.DoesNotExist:
             return HttpResponse('''<script>alert("Invalid password");window.location="/"</script>''')    
@@ -212,8 +213,9 @@ class AddQuestionPaperView(View):
     def post(self, request):
         question = request.POST.get('question')
         pdf = request.FILES['pdf']
-        publish_datetime = request.POST.get('publish_datetime')
-        publish_datetime = parse_datetime(publish_datetime)
+        publishDate = request.POST.get('publishDate')
+        publishTime = request.POST.get('publishTime')
+
 
         pdf_content = base64.b64encode(pdf.read()).decode('utf-8')  # File stored in Blockchain
 
@@ -230,34 +232,38 @@ class AddQuestionPaperView(View):
         question_paper=QuestionPaper.objects.create(
             Question=question,
             blockchain_hash=latest_block.current_hash,
-            PublishDateTime=publish_datetime,
+            publishDate=publishDate,
+            publishTIme=publishTime,
+            
         )
-                # Generate Random Code and Map to All Examiners
+        # Generate Random Code and Map to All Examiners
         examiners = Examiner.objects.all()
+        print(examiners)
 
         for examiner in examiners:
-            random_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))  # 8 char code
+            random_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            print(random_code)  # 8 char code
             QuestionPaperCode.objects.create(
                 QuestionPaperID=question_paper,
                 ExaminerID=examiner,
                 Code=random_code
             )
-            subject = 'Secure Question Paper Access Code'
-            message = f'''
-                Hello {examiner.Name},
+            # subject = 'Secure Question Paper Access Code'
+            # message = f'''
+            #     Hello {examiner.Name},
 
-                A new Question Paper has been assigned to you.
+            #     A new Question Paper has been assigned to you.
 
-                Question: {question}
+            #     Question: {question}
 
-                Your Unique Code to Access it: {random_code}
+            #     Your Unique Code to Access it: {random_code}
 
-                Please keep this code confidential.
+            #     Please keep this code confidential.
 
-                Regards,
-                Admin Team
-                            '''
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [examiner.Email])
+            #     Regards,
+            #     Admin Team
+            #                 '''
+            # send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [examiner.Email])
 
 
         return HttpResponse('''<script>alert("Question Paper Added to Blockchain");window.location="/view_question_paper"</script>''')
@@ -278,12 +284,29 @@ class ViewQuestionPaperView(View):
                 pass  # Ignore if block not found
 
         return render(request, 'view_question_paper.html', {'questions': active_questions})
-    
+class ExViewQuestionPaperView(View):
+    def get(self, request):
+        active_questions = []
+
+        for qp in QuestionPaper.objects.all():
+            try:
+                block = BlockData.objects.get(current_hash=qp.blockchain_hash)
+               
+                block_data = block.data  
+                
+                if block_data.get('status') == 'Active':
+                    active_questions.append(qp)
+            except BlockData.DoesNotExist:
+                pass  # Ignore if block not found
+
+        return render(request, 'ex_view_question_paper.html', {'questions': active_questions})
+   
+from django.utils.timezone import localtime, make_aware   
 class UpdateQuestionPaperView(View):
     def get(self, request, id):
         qp = get_object_or_404(QuestionPaper, id=id)
-        return render(request, 'update_question_paper.html', {'qp': qp})
 
+        return render(request, 'update_question_paper.html', {'qp':qp})
     def post(self, request, id):
         from django.utils import timezone
         import base64
@@ -293,8 +316,12 @@ class UpdateQuestionPaperView(View):
         qp = get_object_or_404(QuestionPaper, id=id)
         question = request.POST.get('question')
         pdf = request.FILES.get('pdf')
-        publish_datetime = request.POST.get('publish_datetime')
-        publish_datetime = parse_datetime(publish_datetime)
+        publishDate = request.POST.get('publishDate')
+        publishTime = request.POST.get('publishTime')
+
+
+
+
 
         # Handle file (New or Old)
         if pdf:
@@ -336,7 +363,8 @@ class UpdateQuestionPaperView(View):
         # Update Question Paper Table
         qp.Question = question
         qp.blockchain_hash = new_current_hash
-        qp.PublishDateTime = publish_datetime
+        qp.publishDate=publishDate
+        qp.publishTIme=publishTime
         qp.save()
 
         return HttpResponse('''<script>alert("Question Paper Updated in Blockchain");window.location="/view_question_paper"</script>''')
@@ -392,3 +420,93 @@ class DownloadQuestionPaperView(View):
 
         except BlockData.DoesNotExist:
             return HttpResponse("File not found in Blockchain")
+
+from django.views import View
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+from django.http import HttpResponse
+import base64
+from django.utils import timezone
+import pytz
+from django.utils.timezone import localtime
+
+
+class ExaminerCodeVerificationView(View):
+    def get(self, request, qpid):
+        return render(request, 'examiner_code_entry.html')
+
+    def post(self, request, qpid):
+        question_paper = get_object_or_404(QuestionPaper, id=qpid)
+        all_codes = QuestionPaperCode.objects.filter(QuestionPaperID=question_paper)
+
+        log_msgs = []
+        valid_count = 0
+        attempted_examiners = []
+
+        for i in range(1, 4):
+            code = request.POST.get(f'code{i}')
+            examiner_name = request.POST.get(f'examiner{i}')
+            attempted_examiners.append(examiner_name or '')  # Avoid None
+
+                    # Get the examiner by name
+            
+            examiner = Examiner.objects.filter(LOGINID__Username=examiner_name).first()
+
+
+            if examiner:
+            # Match code for this examiner and this question paper
+                matching_code = all_codes.filter(Code=code, ExaminerID=examiner).first()
+
+                # matching_code = all_codes.filter(Code=code).first()
+
+
+                if matching_code:
+                    valid_count += 1
+                    if timezone.now() < question_paper.PublishDateTime:
+                        log_msgs.append(
+                            f"Early access attempt by Examiner '{examiner_name}' (ID: {matching_code.ExaminerID.id})"
+                        )
+                    else:
+                        log_msgs.append(f"Wrong code '{code}' entered by Examiner: {examiner_name}")
+        print(valid_count)
+        if valid_count < 3:
+            log_msgs.append(
+                f"Failed Access Attempt with only ({valid_count}/3) valid codes by Examiners: {', '.join(attempted_examiners)} for QuestionPaperID: {qpid}"
+            )
+        # local_time = timezone.now().astimezone(pytz.timezone("Asia/Kolkata"))
+        local_time=localtime()
+        
+
+# Get current local datetime
+        current_local_datetime = localtime()
+
+        # Get local date and time separately
+        local_date = current_local_datetime.date()   # e.g., 2025-04-12
+        local_time = current_local_datetime.time()   # e.g., 18:04:23
+
+        # Print them
+        print("Local Date:", local_date)
+        print("Local Time:", local_time)
+        
+
+
+        if valid_count == 3 and local_time >= question_paper.publishTime and local_date >= question_paper.publishDate:
+            print("wwwwwwwwwwwwwww#")
+            log_msgs.append(
+                f"Successful Question Paper Download by Examiners: {', '.join(attempted_examiners)} for QuestionPaperID: {qpid}"
+            )
+            for msg in log_msgs:
+                c=LoginTable.objects.get(id=request.session['userid'])
+                print(c)
+                Log.objects.create(LOGINID=c, LogMessage=msg)
+
+            print("hhhhhh")
+            return redirect('download_question_paper', hash=question_paper.blockchain_hash)
+
+        for msg in log_msgs:
+            c=LoginTable.objects.get(id=request.session['userid'])
+            print(c)
+            Log.objects.create(LOGINID=c, LogMessage=msg)
+
+        return HttpResponse("Access Denied or Invalid Attempt")
+

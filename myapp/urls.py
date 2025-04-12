@@ -22,10 +22,14 @@ urlpatterns = [
     path('view_blockchain', ViewBlockchainView.as_view(), name='view_blockchain'),
     path('add_question_paper', AddQuestionPaperView.as_view(), name='add_question_paper'),
     path('view_question_paper', ViewQuestionPaperView.as_view(), name='view_question_paper'),
+    path('ex_view_question_paper', ExViewQuestionPaperView.as_view(), name='ex_view_question_paper'),
     path('update_question_paper/<int:id>', UpdateQuestionPaperView.as_view(), name='update_question_paper'),
     path('delete_question_paper/<int:id>', DeleteQuestionPaperView.as_view(), name='delete_question_paper'),
     path('download_question_paper/<str:hash>', DownloadQuestionPaperView.as_view(), name='download_question_paper'),
 
+
+    path('verify-code/<int:qpid>/', ExaminerCodeVerificationView.as_view(), name='verify_examiner_code'),
+    path('download/<str:hash>/', DownloadQuestionPaperView.as_view(), name='download_question'),
 
 
 

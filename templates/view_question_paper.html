@@ -102,6 +102,7 @@
           <th>ID</th>
           <th>Question</th>
           <th>Published Date</th>
+          <th>Published Time</th>
           <th>Download</th>
           <th>Action</th>
         </tr>
@@ -110,7 +111,8 @@
         <tr>
           <td>{{ q.id }}</td>
           <td>{{ q.Question }}</td>
-          <td>{{ q.PublishDateTime }}</td>
+          <td>{{ q.publishDate }}</td>
+          <td>{{ q.publishTime }}</td>
           <td><a class="btn" href="{% url 'download_question_paper' q.blockchain_hash %}">Download PDF</a></td>
           <td><a class="btn" href="/update_question_paper/{{ q.id }}">Update</a>
             <a class="btn" href="/delete_question_paper/{{ q.id }}">Delete</a>

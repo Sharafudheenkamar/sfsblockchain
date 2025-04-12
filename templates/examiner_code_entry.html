@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Secure Question Paper System</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: url('{% static "images/blockbg.jpg" %}');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .login-container {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 40px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    input[type="text"], button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #333;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Secure Question Paper System</h1>
+</header>
+
+<main>
+  <div class="login-container">
+    <form method="post">
+      {% csrf_token %}
+      <label>Examiner 1 Username:</label>
+      <input type="text" name="examiner1" required>
+      <label>Examiner 1 Code:</label>
+      <input type="text" name="code1" required>
+
+      <label>Examiner 2 Username:</label>
+      <input type="text" name="examiner2" required>
+      <label>Examiner 2 Code:</label>
+      <input type="text" name="code2" required>
+
+      <label>Examiner 3 Username:</label>
+      <input type="text" name="examiner3" required>
+      <label>Examiner 3 Code:</label>
+      <input type="text" name="code3" required>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>
