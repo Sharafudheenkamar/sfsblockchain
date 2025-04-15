@@ -102,6 +102,7 @@
           <th>ID</th>
           <th>Question</th>
           <th>Published Date</th>
+          <th>Publish Time</th>
           <th>Download</th>
 
         </tr>
@@ -110,7 +111,8 @@
         <tr>
           <td>{{ q.id }}</td>
           <td>{{ q.Question }}</td>
-          <td>{{ q.PublishDateTime }}</td>
+          <td>{{ q.publishDate }}</td>
+          <td>{{ q.publishTime }}</td>
           <td><a class="btn" href="{% url 'verify_examiner_code' q.id %}">Download PDF</a></td>
 
 

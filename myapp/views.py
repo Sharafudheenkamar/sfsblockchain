@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views import View
 from .models import *
 
@@ -267,6 +268,35 @@ class AddQuestionPaperView(View):
 
 
         return HttpResponse('''<script>alert("Question Paper Added to Blockchain");window.location="/view_question_paper"</script>''')
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import QuestionPaper, BlockData
+from .serializers import QuestionPaperSerializer
+
+class ActiveQuestionPaperAPIView(APIView):
+    """
+    API to return all active question papers.
+    """
+
+    def get(self, request):
+        active_questions = []
+
+        for qp in QuestionPaper.objects.all():
+            try:
+                block = BlockData.objects.get(current_hash=qp.blockchain_hash)
+                block_data = block.data
+
+                if block_data.get('status') == 'Active':
+                    active_questions.append(qp)
+            except BlockData.DoesNotExist:
+                continue
+
+        serializer = QuestionPaperSerializer(active_questions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 # View Question Paper
 class ViewQuestionPaperView(View):
     def get(self, request):
@@ -318,6 +348,7 @@ class UpdateQuestionPaperView(View):
         pdf = request.FILES.get('pdf')
         publishDate = request.POST.get('publishDate')
         publishTime = request.POST.get('publishTime')
+        print(publishTime)
 
 
 
@@ -364,7 +395,7 @@ class UpdateQuestionPaperView(View):
         qp.Question = question
         qp.blockchain_hash = new_current_hash
         qp.publishDate=publishDate
-        qp.publishTIme=publishTime
+        qp.publishTime=publishTime
         qp.save()
 
         return HttpResponse('''<script>alert("Question Paper Updated in Blockchain");window.location="/view_question_paper"</script>''')
@@ -416,10 +447,40 @@ class DownloadQuestionPaperView(View):
 
             response = HttpResponse(file_content, content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="question_paper.pdf"'
+            print(response)
             return response
 
         except BlockData.DoesNotExist:
             return HttpResponse("File not found in Blockchain")
+
+from django.http import HttpResponse
+import base64
+class ExDownloadQuestionPaperView(View):
+    def get(self, request, hash):
+        import base64
+        import json
+        from django.http import HttpResponse
+        from django.shortcuts import get_object_or_404
+
+        # Search in BlockData Table
+        try:
+            block = BlockData.objects.get(current_hash=hash)
+            block_data = block.data
+            file_data = block_data.get('file_data')
+
+            if not file_data:
+                return HttpResponse("File data missing in Blockchain")
+
+            file_content = base64.b64decode(file_data)
+
+            response = HttpResponse(file_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="question_paper.pdf"'
+            print(response)
+            return response
+
+        except BlockData.DoesNotExist:
+            return HttpResponse("File not found in Blockchain")
+
 
 from django.views import View
 from django.shortcuts import render, get_object_or_404, redirect
@@ -429,6 +490,9 @@ import base64
 from django.utils import timezone
 import pytz
 from django.utils.timezone import localtime
+from datetime import datetime
+from django.utils.timezone import make_aware
+
 
 
 class ExaminerCodeVerificationView(View):
@@ -442,6 +506,7 @@ class ExaminerCodeVerificationView(View):
         log_msgs = []
         valid_count = 0
         attempted_examiners = []
+        print(log_msgs)
 
         for i in range(1, 4):
             code = request.POST.get(f'code{i}')
@@ -462,11 +527,18 @@ class ExaminerCodeVerificationView(View):
 
                 if matching_code:
                     valid_count += 1
-                    if timezone.now() < question_paper.PublishDateTime:
+                    # Inside your view
+                    publish_str = f"{question_paper.publishDate} {question_paper.publishTime}"
+                    try:
+                        publish_datetime = make_aware(datetime.strptime(publish_str, "%Y-%m-%d %H:%M:%S"))
+                    except ValueError:
+                        publish_datetime = None
+
+                    if publish_datetime and timezone.now() < publish_datetime:
                         log_msgs.append(
                             f"Early access attempt by Examiner '{examiner_name}' (ID: {matching_code.ExaminerID.id})"
                         )
-                    else:
+                else:
                         log_msgs.append(f"Wrong code '{code}' entered by Examiner: {examiner_name}")
         print(valid_count)
         if valid_count < 3:
@@ -487,10 +559,27 @@ class ExaminerCodeVerificationView(View):
         # Print them
         print("Local Date:", local_date)
         print("Local Time:", local_time)
-        
+        publish_date=question_paper.publishDate
+        publish_time=question_paper.publishTime
+        print(publish_date,publish_time)
+        try:
+            publish_date = datetime.strptime(question_paper.publishDate, "%Y-%m-%d").date()
+            publish_time = datetime.strptime(question_paper.publishTime, "%H:%M").time()
+        except (ValueError, TypeError):
+            publish_date = None
+            publish_time = None
+
+        print(publish_date,publish_time)
+        local_datetime = datetime.combine(local_date, local_time)
+        publish_datetime = datetime.combine(publish_date, publish_time)
+
+        # Now safely compare
+        if valid_count == 3 and publish_datetime <= local_datetime:
+            print("Valid access after publish date and time")
+            print("Valid access after publish date and time")
 
 
-        if valid_count == 3 and local_time >= question_paper.publishTime and local_date >= question_paper.publishDate:
+
             print("wwwwwwwwwwwwwww#")
             log_msgs.append(
                 f"Successful Question Paper Download by Examiners: {', '.join(attempted_examiners)} for QuestionPaperID: {qpid}"
@@ -501,12 +590,90 @@ class ExaminerCodeVerificationView(View):
                 Log.objects.create(LOGINID=c, LogMessage=msg)
 
             print("hhhhhh")
-            return redirect('download_question_paper', hash=question_paper.blockchain_hash)
+            # return redirect('exdownload_question_paper', hash=question_paper.blockchain_hash)
+            return render(request, 'trigger_download_and_redirect.html', {
+        'download_url': reverse('exdownload_question_paper', kwargs={'hash': question_paper.blockchain_hash}),
+        'redirect_url': reverse('ex_view_question_paper')  # <- change to your actual redirect view name
+    })
+        else:
+            log_msgs.append(
+                f"All codes correct but early access attempt by Examiners: {', '.join(attempted_examiners)} for QuestionPaperID: {qpid}"
+            )
 
         for msg in log_msgs:
             c=LoginTable.objects.get(id=request.session['userid'])
             print(c)
             Log.objects.create(LOGINID=c, LogMessage=msg)
 
-        return HttpResponse("Access Denied or Invalid Attempt")
+        request.session['log_alerts'] = log_msgs
 
+        return redirect('ex_show_alert_and_redirect')
+
+
+
+    
+class ex_show_alert_and_redirect(View):
+    def get(self,request):
+        print("show alert and redirect")
+        messages = request.session.pop('log_alerts', [])
+        return render(request, 'show_alert_and_redirect.html', {'messages': messages})
+    
+
+
+import base64
+from django.http import FileResponse, Http404
+from django.utils.timezone import make_aware, localtime
+from datetime import datetime, timedelta
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from io import BytesIO
+from .models import QuestionPaper, BlockData
+
+class QuestionPaperAccessAPIView(APIView):
+    """
+    Allows access to a question paper only if the current time is X minutes after publish time.
+    Sends the file (decoded from base64) as a downloadable response.
+    """
+
+    def get(self, request, qpid):
+        question_paper = get_object_or_404(QuestionPaper, id=qpid)
+        allowed_delay_minutes = 5
+        current_local_datetime = localtime()
+
+        # Parse and localize the publish datetime
+        try:
+            publish_date = datetime.strptime(question_paper.publishDate, "%Y-%m-%d").date()
+            publish_time = datetime.strptime(question_paper.publishTime, "%H:%M").time()
+            publish_datetime_naive = datetime.combine(publish_date, publish_time)
+            publish_datetime = make_aware(publish_datetime_naive, timezone=current_local_datetime.tzinfo)
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid publish date or time format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        allowed_access_time = publish_datetime + timedelta(minutes=allowed_delay_minutes)
+
+        if current_local_datetime < allowed_access_time:
+            return Response({
+                "message": "Question paper cannot be downloaded yet.",
+                "wait_until": allowed_access_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "current_time": current_local_datetime.strftime("%Y-%m-%d %H:%M:%S")
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Fetch file data from BlockData
+        try:
+            block = BlockData.objects.get(current_hash=question_paper.blockchain_hash)
+            file_data_base64 = block.data.get('file_data')
+            filename = block.data.get('filename', f"question_{qpid}.pdf")
+            
+            if not file_data_base64:
+                return Response({"error": "File data not found in block."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Decode base64 and serve as file
+            file_bytes = base64.b64decode(file_data_base64)
+            file_stream = BytesIO(file_bytes)
+
+            return FileResponse(file_stream, as_attachment=True, filename=filename)
+
+        except BlockData.DoesNotExist:
+            return Response({"error": "Blockchain data not found for this question paper."}, status=status.HTTP_404_NOT_FOUND)

@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Logging Information</title>
+  <meta http-equiv="refresh" content="3;url={% url 'ex_view_question_paper' %}">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: url('{% static "images/blockbg.jpg" %}');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .message-container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 40px;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+
+    .message-container h2 {
+      margin-bottom: 20px;
+    }
+
+    .message {
+      background-color: #e7f3fe;
+      border-left: 4px solid #2196F3;
+      padding: 10px;
+      margin: 10px 0;
+      text-align: left;
+    }
+
+    .redirecting {
+      margin-top: 20px;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Secure Question Paper System</h1>
+</header>
+
+<main>
+  <div class="message-container">
+    <h2>Messages Logged</h2>
+
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="message">{{ msg }}</div>
+        {% endfor %}
+    {% else %}
+        <p>No messages to display.</p>
+    {% endif %}
+
+    <div class="redirecting">Redirecting to question paper view...</div>
+  </div>
+</main>
+
+</body>
+</html>

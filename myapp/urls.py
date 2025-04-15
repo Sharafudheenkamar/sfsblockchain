@@ -26,11 +26,15 @@ urlpatterns = [
     path('update_question_paper/<int:id>', UpdateQuestionPaperView.as_view(), name='update_question_paper'),
     path('delete_question_paper/<int:id>', DeleteQuestionPaperView.as_view(), name='delete_question_paper'),
     path('download_question_paper/<str:hash>', DownloadQuestionPaperView.as_view(), name='download_question_paper'),
+    path('exdownload_question_paper/<str:hash>', ExDownloadQuestionPaperView.as_view(), name='exdownload_question_paper'),
+    path('ex_show_alert_and_redirect/', ex_show_alert_and_redirect.as_view(), name='ex_show_alert_and_redirect'),
 
 
     path('verify-code/<int:qpid>/', ExaminerCodeVerificationView.as_view(), name='verify_examiner_code'),
     path('download/<str:hash>/', DownloadQuestionPaperView.as_view(), name='download_question'),
+    path('api/active-question-papers/', ActiveQuestionPaperAPIView.as_view(), name='active-question-papers'),
 
+    path('api-question-paper-access/<int:qpid>/', QuestionPaperAccessAPIView.as_view(), name='question_paper_access'),
 
 
     

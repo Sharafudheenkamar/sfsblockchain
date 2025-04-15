@@ -35,7 +35,7 @@ class QuestionPaper(models.Model):
     blockchain_hash = models.CharField(max_length=256,null=True,blank=True)
     publishDate=models.CharField(max_length=100,null=True,blank=True)
     publishTime=models.CharField(max_length=100,null=True,blank=True)  # Blockchain hash of the file
-    PublishDateTime = models.DateTimeField(null=True,blank=True)
+    # PublishDateTime = models.DateTimeField(null=True,blank=True)
     status = models.CharField(max_length=10, default='Active') 
 
 class QuestionPaperCode(models.Model):
