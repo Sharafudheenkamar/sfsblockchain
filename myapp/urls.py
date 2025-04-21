@@ -18,7 +18,8 @@ urlpatterns = [
     path('examinerviewusers',examinerviewusers.as_view(),name='examinerviewusers'),
     path('examinerviewcomplaint',examinerviewcomplaint.as_view(),name='examinerviewcomplaint'),
     path('examinersendcomplaint',examinersendcomplaint.as_view(),name='examinersendcomplaint'),
-
+    path('publishquestionpaper/<int:id>',publishquestionpaper.as_view(),name='publishquestionpaper'),
+    path('unpublishquestionpaper/<int:id>',unpublishquestionpaper.as_view(),name='unpublishquestionpaper'),
     path('view_blockchain', ViewBlockchainView.as_view(), name='view_blockchain'),
     path('add_question_paper', AddQuestionPaperView.as_view(), name='add_question_paper'),
     path('view_question_paper', ViewQuestionPaperView.as_view(), name='view_question_paper'),

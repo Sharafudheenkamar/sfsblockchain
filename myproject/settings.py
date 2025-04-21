@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-zf893sv!moc+u_vz$h(rc$d%(d7v8jw#v=*(k*)$_ntdb*v6t8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

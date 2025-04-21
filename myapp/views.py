@@ -146,6 +146,19 @@ class examinersendcomplaint(View):
     def get(self,request):
         return render(request, 'examinersendcomplaint.html')
     
+class publishquestionpaper(View):
+    def get(self,request,id):
+        question_paper = QuestionPaper.objects.get(id=id)
+        question_paper.publishstatus='published'
+        question_paper.save()  # Fetch the Question Paper details
+        return redirect('view_question_paper')
+
+class unpublishquestionpaper(View):
+    def get(self,request,id):
+        question_paper = QuestionPaper.objects.get(id=id)
+        question_paper.publishstatus='unpublished'
+        question_paper.save()  # Fetch the Question Paper details
+        return redirect('view_question_paper')    
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse

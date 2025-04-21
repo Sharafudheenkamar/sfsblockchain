@@ -37,6 +37,7 @@ class QuestionPaper(models.Model):
     publishTime=models.CharField(max_length=100,null=True,blank=True)  # Blockchain hash of the file
     # PublishDateTime = models.DateTimeField(null=True,blank=True)
     status = models.CharField(max_length=10, default='Active') 
+    publishstatus = models.CharField(max_length=10,default='unpublished')
 
 class QuestionPaperCode(models.Model):
     QuestionPaperID=models.ForeignKey(QuestionPaper,on_delete=models.CASCADE,null=True,blank=True)
