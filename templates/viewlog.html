@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Dashboard - Secure Question Paper System</title>
+  <title>View Users - Secure Question Paper System</title>
   <style>
     body {
       margin: 0;
@@ -35,38 +35,39 @@
       padding: 40px 20px;
     }
 
-    .dashboard-container {
+    .table-container {
       background: rgba(255, 255, 255, 0.9);
       padding: 40px;
       border-radius: 20px;
       width: 100%;
-      max-width: 400px;
+      max-width: 800px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      text-align: center;
     }
 
-    .dashboard-container h2 {
+    h2 {
+      text-align: center;
       color: #007bff;
       margin-bottom: 30px;
     }
 
-    .btn {
-      display: block;
+    table {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      background: #00bcd4;
-      color: white;
-      border: none;
-      border-radius: 30px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      text-decoration: none;
+      border-collapse: collapse;
     }
 
-    .btn:hover {
-      background: #0097a7;
+    th, td {
+      padding: 12px 15px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #00bcd4;
+      color: white;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
     }
 
   </style>
@@ -75,25 +76,39 @@
 
 <header>
   <h1>Secure Question Paper System</h1>
+  <a href="{% url 'admindashboard' %}" style="position: absolute; top: 20px; right: 30px; text-decoration: none;">
+    <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      Home
+    </button>
+  </a>
 </header>
 
 <main>
-  <div class="dashboard-container">
-    <h2>Admin Dashboard</h2>
+  <div class="table-container">
+    <h2>View Users</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Message</th>
+          <th>Date/Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in lo %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.LogMessage }}</td>
+          <td>{{ user.LogDateTime }}</td>
 
-    <a href="{% url 'viewcomplaint' %}" class="btn">View Complaint</a>
-    <a href="{% url 'viewfeedback' %}" class="btn">View Feedback</a>
-    <a href="{% url 'viewexaminer' %}" class="btn">View Examiner</a>
-    <a href="{% url 'view_blockchain' %}" class="btn">View Blockchain</a>
-    
-    <a href="{% url 'view_blockchain' %}" class="btn">View Blockchain</a>
-    
-    
-    <a href="{% url 'view_question_paper' %}" class="btn">View Question Paper</a>
-    <a href="{% url 'viewlogdetails' %}" class="btn">View Log Details</a>
-
-    <a href="{% url 'logout' %}" class="btn" style="background:#e53935;">Logout</a>
-
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4">No Users Found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </main>
 

@@ -281,6 +281,12 @@ class AddQuestionPaperView(View):
 
 
         return HttpResponse('''<script>alert("Question Paper Added to Blockchain");window.location="/view_question_paper"</script>''')
+    
+class viewlogdetails(View):
+    def get(self,request):
+        lo=Log.objects.all()
+        return render(request,'viewlog.html',{'lo':lo})
+
 # views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -293,10 +299,11 @@ class ActiveQuestionPaperAPIView(APIView):
     API to return all active question papers.
     """
 
+    #    
     def get(self, request):
         active_questions = []
 
-        for qp in QuestionPaper.objects.all():
+        for qp in QuestionPaper.objects.filter(publishstatus='published').all():
             try:
                 block = BlockData.objects.get(current_hash=qp.blockchain_hash)
                 block_data = block.data

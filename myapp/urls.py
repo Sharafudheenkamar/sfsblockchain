@@ -14,6 +14,7 @@ urlpatterns = [
     path('deleteexaminer/<int:id>/', deleteexaminer.as_view(), name='deleteexaminer'),
     path('viewcomplaint',viewcomplaint.as_view(),name='viewcomplaint'),
     path('sendreply/<int:id>/',sendreply.as_view(),name='sendreply'),
+    path('viewlogdetails',viewlogdetails.as_view(),name='viewlogdetails'),
     # path('viewquestionpaper',viewquestionpaper.as_view(),name='viewquestionpaper'),
     path('examinerviewusers',examinerviewusers.as_view(),name='examinerviewusers'),
     path('examinerviewcomplaint',examinerviewcomplaint.as_view(),name='examinerviewcomplaint'),
